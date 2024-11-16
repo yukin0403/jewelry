@@ -1,0 +1,5 @@
+.env
+.vscode
+.venv
+__pycache__
+discord-bot-421209-2883c9978631.json
