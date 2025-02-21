@@ -53,7 +53,7 @@ class UserInputSelect1(discord.ui.Select):
         await self.view.delete_message.delete()
         # 既に同じ部屋+役割の結果が入力されていた場合警告
         if room_role in result_list:
-            await g.result_ch.send(
+            await g.repeat_result_ch.send(
                 f"重複した入力です。確認お願いします。\n"
                 f"{g.admins_mention}\n"
                 f"----------------------------------------\n"

@@ -81,19 +81,33 @@ class MyModal(discord.ui.Modal):
                 ephemeral=True,
             )
             return
-        else:
-            # スプシに書き込み
-            g.input_member_ws.append_row(new_raw)
+        # 役職重複確認
+        club_member_list = g.member_data[g.member_data["club_name"] == club_name]
+        role_list = club_member_list["role"].tolist()
+        if role in role_list:
+            register_name = str(
+                club_member_list.loc[
+                    club_member_list["role"] == role, "user_name"
+                ].values[0]
+            )
             await interaction.response.send_message(
-                f"サークル名:{club_name}\n"
-                f"登録名:{user_name}\n"
-                f"役割:{role}\n"
-                f"ウマ娘1:{un1} ({up1})\n"
-                f"ウマ娘2:{un2} ({up2})\n"
-                f"ウマ娘3:{un3} ({up3})\n"
-                f"トレーナーID:{trainer_id}",
+                f"{role}には既に{register_name}さんが登録されています。\n"
+                "修正が必要な場合は運営に問い合わせをお願いします。",
                 ephemeral=True,
             )
+            return
+        # スプシに書き込み
+        g.input_member_ws.append_row(new_raw)
+        await interaction.response.send_message(
+            f"サークル名:{club_name}\n"
+            f"登録名:{user_name}\n"
+            f"役割:{role}\n"
+            f"ウマ娘1:{un1} ({up1})\n"
+            f"ウマ娘2:{un2} ({up2})\n"
+            f"ウマ娘3:{un3} ({up3})\n"
+            f"トレーナーID:{trainer_id}",
+            ephemeral=True,
+        )
 
 
 # ウマ娘登録

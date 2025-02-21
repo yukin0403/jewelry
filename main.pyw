@@ -1,8 +1,5 @@
 import discord
-from discord import Option
 from discord.ext import commands
-from discord.commands import slash_command
-from discord.commands import SlashCommandGroup
 import pandas as pd
 import numpy as np
 import global_value as g
@@ -21,6 +18,7 @@ GUILD_ID = os.getenv("GUILD_ID")
 SPREADSHEET_URL = os.getenv("SPREADSHEET_URL")
 REMIND_CH_ID = int(os.getenv("REMIND_CH_ID"))
 RESULT_CH_ID = int(os.getenv("RESULT_CH_ID"))
+REPEAT_RESULT_CH_ID = int(os.getenv("REPEAT_RESULT_CH_ID"))
 REGISTER_CH_ID = int(os.getenv("REGISTER_CH_ID"))
 
 scope = [
@@ -77,6 +75,8 @@ async def on_ready():
 
     # 結果出力先チャンネル読み込み
     g.result_ch = bot.get_channel(RESULT_CH_ID)
+    # 重複結果出力先チャンネル読み込み
+    g.repeat_result_ch = bot.get_channel(REPEAT_RESULT_CH_ID)
     # 登録用チャンネル読み込み
     g.register_ch = bot.get_channel(REGISTER_CH_ID)
     # リマインド用チャンネル読み込み
