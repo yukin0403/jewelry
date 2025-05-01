@@ -6,6 +6,7 @@ from discord.commands import SlashCommandGroup
 import pandas as pd
 import numpy as np
 import global_value as g
+import settings.group as gr
 import unicodedata
 import datetime
 import os
@@ -90,8 +91,8 @@ class admin(commands.Cog):
         name="builds",
         description="部屋建て通知",
     )
-    async def builds(self, ctx, matchs: discord.Option(str, choices=g.match_groups), code):  # type: ignore
-        if not code == "ノースフライト":
+    async def builds(self, ctx, matchs: discord.Option(str, choices=gr.match_groups), code):  # type: ignore
+        if code != "ノースフライト":
             await ctx.interaction.response.send_message(
                 f"コードが違います。", ephemeral=True
             )
@@ -101,7 +102,7 @@ class admin(commands.Cog):
                 f"正常に送信が完了しました。", ephemeral=True
             )
             # matchesで選んだ値に対応したリストを取得
-            groups = g.match_group_mapping.get(matchs, [])
+            groups = gr.match_group_mapping.get(matchs, [])
 
             for group in groups:
                 names = []  # embed用リスト

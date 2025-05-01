@@ -8,14 +8,14 @@ import numpy as np
 import global_value as g
 import unicodedata
 from datetime import datetime
-from schedule import schedule_data
+from settings.schedule import schedule_data
 import asyncio
 
 types = [
     "予選",
     "勝者側-準々決",
-    "勝者側-準決",
     "敗者側-予選",
+    "勝者側-準決",
     "敗者側-準々決",
     "敗者側-準決",
 ]

@@ -43,7 +43,8 @@ class club_confirm(commands.Cog):
             return message
 
         user_id = str(ctx.author.id)  # コマンド実行者のuser_id
-        g.club_data = g.get_sheet_all_values(g.club_ws)  # シート[club]読み込み
+        # シート[club]読み込み
+        g.club_data = g.get_sheet_all_values(g.club_ws)
         club_user_id_list = g.club_data["user_id"].tolist()
         club_user_id_list_str = [
             str(i) for i in club_user_id_list

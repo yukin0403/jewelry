@@ -6,6 +6,7 @@ from discord.commands import SlashCommandGroup
 import pandas as pd
 import numpy as np
 import global_value as g
+from settings.uma_list import uma_list_mapping
 import unicodedata
 import datetime
 
@@ -72,8 +73,10 @@ class MyModal(discord.ui.Modal):
             user_id,
             enthusiasm,
         ]
-        # サークル名リストを読み込んで入力したサークル名と一致するか調べる
+        # シート[club]読み込み
+        g.club_data = g.get_sheet_all_values(g.club_ws)
         club_name_list = g.club_data["club_name"].tolist()
+        # サークル名リストを読み込んで入力したサークル名と一致するか調べる
         if not (club_name in club_name_list):
             await interaction.response.send_message(
                 "一致するサークル名がありません。\n"
@@ -82,6 +85,7 @@ class MyModal(discord.ui.Modal):
             )
             return
         # 役職重複確認
+        g.member_data = g.get_sheet_all_values(g.member_ws)
         club_member_list = g.member_data[g.member_data["club_name"] == club_name]
         role_list = club_member_list["role"].tolist()
         if role in role_list:
@@ -90,12 +94,18 @@ class MyModal(discord.ui.Modal):
                     club_member_list["role"] == role, "user_name"
                 ].values[0]
             )
-            await interaction.response.send_message(
-                f"{role}には既に{register_name}さんが登録されています。\n"
-                "修正が必要な場合は運営に問い合わせをお願いします。",
-                ephemeral=True,
+            register_id = str(
+                club_member_list.loc[
+                    club_member_list["role"] == role, "user_id"
+                ].values[0]
             )
-            return
+            if register_id != user_id:
+                await interaction.response.send_message(
+                    f"{role}には既に{register_name}さんが登録されています。\n"
+                    "修正が必要な場合は運営に問い合わせをお願いします。",
+                    ephemeral=True,
+                )
+                return
         # スプシに書き込み
         g.input_member_ws.append_row(new_raw)
         await interaction.response.send_message(
@@ -136,7 +146,7 @@ class uma_register(commands.Cog):
             unicodedata.normalize("NFKC", uma_id)
             for uma_id in [ウマ娘id1, ウマ娘id2, ウマ娘id3]
         ]
-        uma_names = [g.uma_list_mapping.get(uma_id) for uma_id in uma_ids]
+        uma_names = [uma_list_mapping.get(uma_id) for uma_id in uma_ids]
         # ウマ娘名が存在しない場合
         if any(uma_name is None for uma_name in uma_names):
             await ctx.interaction.response.send_message(
