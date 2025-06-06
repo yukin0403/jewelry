@@ -2,12 +2,7 @@ import discord
 from discord import Option
 from discord.ext import commands
 from discord.commands import slash_command
-from discord.commands import SlashCommandGroup
-import pandas as pd
-import numpy as np
-import global_value as g
-import unicodedata
-import datetime
+import modules.module as m
 
 
 # 勝ったウマを選択
@@ -26,19 +21,19 @@ class UserInputSelect1(discord.ui.Select):
         win_member = self.view.result_info[2]
         win_room = self.view.result_info[3]
         # 役割取得
-        user_info = g.member_data[g.member_data["user_name"] == str(win_member)]
+        user_info = self.bot.member_data[self.bot.member_data["user_name"] == str(win_member)]
         role = user_info["role"].to_string(header=False, index=False)
         # 結果一覧取得
-        result_data = g.get_sheet_all_values(g.result_ws)
+        result_data = m.get_sheet_all_values(self.bot.result_ws)
         # 送信した結果と取得した結果一覧のroom列とrole列結合
         room_role = str(win_room) + str(role)
         result_list = (result_data["room"] + result_data["role"]).tolist()
         # スプシに書き込み
         new_raw = [win_room, role, win_member, win_uma, transmission_user_name]
-        g.result_ws.append_row(new_raw)
+        self.bot.result_ws.append_row(new_raw)
         # 特殊記号エスケープ
-        transmission_user_name = g.symbols_escape(transmission_user_name)
-        win_member = g.symbols_escape(win_member)
+        transmission_user_name = m.symbols_escape(transmission_user_name)
+        win_member = m.symbols_escape(win_member)
         # /resultしたチャンネルに結果送信
         result_message = (
             f"送信者: {transmission_user_name}\n"
@@ -53,9 +48,9 @@ class UserInputSelect1(discord.ui.Select):
         await self.view.delete_message.delete()
         # 既に同じ部屋+役割の結果が入力されていた場合警告
         if room_role in result_list:
-            await g.repeat_result_ch.send(
+            await self.bot.repeat_result_ch.send(
                 f"重複した入力です。確認お願いします。\n"
-                f"{g.admins_mention}\n"
+                f"{self.bot.admins_mention}\n"
                 f"----------------------------------------\n"
                 f"再送信した理由をこの結果に返信お願いします。重複入力した覚えがない場合はその旨返信お願いします。\n"
                 f"{transmission_user.mention}\n\n\n"
@@ -63,7 +58,7 @@ class UserInputSelect1(discord.ui.Select):
             )
             return
         else:
-            await g.result_ch.send(result_message)
+            await self.bot.result_ch.send(result_message)
             return
 
 
@@ -78,7 +73,7 @@ class WinUmaView(discord.ui.View):
 
 
 # 結果入力起動
-class result(commands.Cog):
+class Result(commands.Cog):
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
@@ -98,7 +93,7 @@ class result(commands.Cog):
         win_room = str(ctx.channel)
         result_info = [transmission_user, transmission_user_name, win_member, win_room]
         # 登録名と表示名が一致してるかチェック
-        id_list = g.member_data["user_id"].tolist()
+        id_list = self.bot.member_data["user_id"].tolist()
         id_list_str = [str(i) for i in id_list]
         if not (win_member_id in id_list_str):
             await ctx.interaction.response.send_message(
@@ -106,7 +101,7 @@ class result(commands.Cog):
             )
             return
         else:
-            uma_list = g.member_data[g.member_data["user_id"] == win_member_id]
+            uma_list = self.bot.member_data[self.bot.member_data["user_id"] == win_member_id]
             for i in range(1, 4):
                 uma_name = uma_list[f"uma_name{i}"].to_string(header=False, index=False)
                 options.append(discord.SelectOption(label=uma_name))
@@ -130,4 +125,4 @@ class result(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(result(bot))
+    bot.add_cog(Result(bot))

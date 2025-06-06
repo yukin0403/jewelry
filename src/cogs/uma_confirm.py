@@ -2,16 +2,11 @@ import discord
 from discord import Option
 from discord.ext import commands
 from discord.commands import slash_command
-from discord.commands import SlashCommandGroup
-import pandas as pd
-import numpy as np
-import global_value as g
-import unicodedata
-import datetime
+import modules.module as m
 
 
 # ウマ娘登録確認
-class uma_confirm(commands.Cog):
+class UmaConfirm(commands.Cog):
     def __init__(self, bot):
         super().__init__()
         self.bot = bot
@@ -23,9 +18,9 @@ class uma_confirm(commands.Cog):
     async def confirm(self, ctx):
         user_id = str(ctx.author.id)
         # シート[member]読み込み
-        g.member_data = g.get_sheet_all_values(g.member_ws)
+        self.bot.member_data = m.get_sheet_all_values(self.bot.member_ws)
         # idリストを読み込んでstr型に変換
-        id_list = g.member_data["user_id"].tolist()
+        id_list = self.bot.member_data["user_id"].tolist()
         id_list_str = [str(i) for i in id_list]
         # idリストの中にコマンド実行者のuser_idがあるか調べる
         if not (user_id in id_list_str):
@@ -36,7 +31,7 @@ class uma_confirm(commands.Cog):
             )
             return
         else:
-            user_info = g.member_data[g.member_data["user_id"] == str(user_id)]
+            user_info = self.bot.member_data[self.bot.member_data["user_id"] == str(user_id)]
             club_name = user_info["club_name"].to_string(header=False, index=False)
             user_name = user_info["user_name"].to_string(header=False, index=False)
             role = user_info["role"].to_string(header=False, index=False)
@@ -62,4 +57,4 @@ class uma_confirm(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(uma_confirm(bot))
+    bot.add_cog(UmaConfirm(bot))

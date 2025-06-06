@@ -2,14 +2,10 @@ import discord
 from discord import Option
 from discord.ext import commands
 from discord.commands import slash_command
-from discord.commands import SlashCommandGroup
-import pandas as pd
-import numpy as np
-import global_value as g
-from settings.uma_list import uma_list_mapping
 import unicodedata
 import datetime
-
+from settings.uma_list import uma_list_mapping
+from modules import module as m
 
 # モーダルウィンドウ
 class MyModal(discord.ui.Modal):
@@ -74,8 +70,8 @@ class MyModal(discord.ui.Modal):
             enthusiasm,
         ]
         # シート[club]読み込み
-        g.club_data = g.get_sheet_all_values(g.club_ws)
-        club_name_list = g.club_data["club_name"].tolist()
+        self.bot.club_data = m.get_sheet_all_values(self.bot.club_ws)
+        club_name_list = self.bot.club_data["club_name"].tolist()
         # サークル名リストを読み込んで入力したサークル名と一致するか調べる
         if not (club_name in club_name_list):
             await interaction.response.send_message(
@@ -85,8 +81,8 @@ class MyModal(discord.ui.Modal):
             )
             return
         # 役職重複確認
-        g.member_data = g.get_sheet_all_values(g.member_ws)
-        club_member_list = g.member_data[g.member_data["club_name"] == club_name]
+        self.bot.member_data = m.get_sheet_all_values(self.bot.member_ws)
+        club_member_list = self.bot.member_data[self.bot.member_data["club_name"] == club_name]
         role_list = club_member_list["role"].tolist()
         if role in role_list:
             register_name = str(
@@ -107,17 +103,20 @@ class MyModal(discord.ui.Modal):
                 )
                 return
         # スプシに書き込み
-        g.input_member_ws.append_row(new_raw)
-        await interaction.response.send_message(
-            f"サークル名:{club_name}\n"
-            f"登録名:{user_name}\n"
-            f"役割:{role}\n"
-            f"ウマ娘1:{un1} ({up1})\n"
-            f"ウマ娘2:{un2} ({up2})\n"
-            f"ウマ娘3:{un3} ({up3})\n"
-            f"トレーナーID:{trainer_id}",
-            ephemeral=True,
+        self.bot.input_member_ws.append_row(new_raw)
+        uma_message = (
+                f"サークル名:{club_name}\n"
+                f"登録名:{user_name}\n"
+                f"役割:{role}\n"
+                f"ウマ娘1:{un1} ({up1})\n"
+                f"ウマ娘2:{un2} ({up2})\n"
+                f"ウマ娘3:{un3} ({up3})\n"
+                f"トレーナーID:{trainer_id}"
         )
+        try:
+            await interaction.response.send_message(uma_message, ephemeral=True)
+        except discord.HTTPException as e:
+            await interaction.response.send_message(uma_message, ephemeral=True)
 
 
 # ウマ娘登録
@@ -133,13 +132,13 @@ class uma_register(commands.Cog):
     async def register(
         self,
         ctx,
-        役割: Option(str, choices=["先鋒", "次鋒", "中堅", "副将", "大将"]),
-        ウマ娘id1: Option(str, min_length=3, max_length=3),
-        ウマ娘脚質1: Option(str, choices=["大逃げ", "逃げ", "先行", "差し", "追込"]),
-        ウマ娘id2: Option(str, min_length=3, max_length=3),
-        ウマ娘脚質2: Option(str, choices=["大逃げ", "逃げ", "先行", "差し", "追込"]),
-        ウマ娘id3: Option(str, min_length=3, max_length=3),
-        ウマ娘脚質3: Option(str, choices=["大逃げ", "逃げ", "先行", "差し", "追込"]),
+        役割: str = Option(str, choices=["先鋒", "次鋒", "中堅", "副将", "大将"]),
+        ウマ娘id1: str = Option(str, min_length=3, max_length=3),
+        ウマ娘脚質1: str = Option(str, choices=["大逃げ", "逃げ", "先行", "差し", "追込"]),
+        ウマ娘id2: str = Option(str, min_length=3, max_length=3),
+        ウマ娘脚質2: str = Option(str, choices=["大逃げ", "逃げ", "先行", "差し", "追込"]),
+        ウマ娘id3: str = Option(str, min_length=3, max_length=3),
+        ウマ娘脚質3: str = Option(str, choices=["大逃げ", "逃げ", "先行", "差し", "追込"]),
     ):
         # 全角数字を半角数字に変換して、IDに対応したウマ娘の名前を取得
         uma_ids = [
@@ -147,6 +146,7 @@ class uma_register(commands.Cog):
             for uma_id in [ウマ娘id1, ウマ娘id2, ウマ娘id3]
         ]
         uma_names = [uma_list_mapping.get(uma_id) for uma_id in uma_ids]
+        uma_patterns = [ウマ娘脚質1, ウマ娘脚質2, ウマ娘脚質3]
         # ウマ娘名が存在しない場合
         if any(uma_name is None for uma_name in uma_names):
             await ctx.interaction.response.send_message(
@@ -157,11 +157,11 @@ class uma_register(commands.Cog):
         else:
             uma_list = [
                 uma_names[0],
-                ウマ娘脚質1,
+                uma_patterns[0],
                 uma_names[1],
-                ウマ娘脚質2,
+                uma_patterns[1],
                 uma_names[2],
-                ウマ娘脚質3,
+                uma_patterns[2],
             ]
             user_list = [str(ctx.author.display_name), str(ctx.author.id), 役割]
             modal = MyModal(uma_list, user_list, title="ウマ娘登録")

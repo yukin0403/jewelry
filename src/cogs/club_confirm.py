@@ -2,16 +2,11 @@ import discord
 from discord import Option
 from discord.ext import commands
 from discord.commands import slash_command
-from discord.commands import SlashCommandGroup
-import pandas as pd
-import numpy as np
-import global_value as g
-import unicodedata
-import datetime
+import modules.module as m
 
 
 # サークル登録確認
-class club_confirm(commands.Cog):
+class ClubConfirm(commands.Cog):
     def __init__(self, bot):
         super().__init__()
         self.bot = bot
@@ -44,17 +39,17 @@ class club_confirm(commands.Cog):
 
         user_id = str(ctx.author.id)  # コマンド実行者のuser_id
         # シート[club]読み込み
-        g.club_data = g.get_sheet_all_values(g.club_ws)
-        club_user_id_list = g.club_data["user_id"].tolist()
+        self.bot.club_data = m.get_sheet_all_values(self.bot.club_ws)
+        club_user_id_list = self.bot.club_data["user_id"].tolist()
         club_user_id_list_str = [
             str(i) for i in club_user_id_list
         ]  # user_idリストを読み込んでstr型に変換
         # idリストの中にコマンド実行者のuser_idがあるか調べる
         if not (user_id in club_user_id_list_str):
-            g.member_data = g.get_sheet_all_values(
-                g.member_ws
+            self.bot.member_data = m.get_sheet_all_values(
+                self.bot.member_ws
             )  # シート[member]読み込み
-            member_user_id_list = g.member_data["user_id"].tolist()
+            member_user_id_list = self.bot.member_data["user_id"].tolist()
             member_user_id_list_str = [
                 str(i) for i in member_user_id_list
             ]  # member_idリストを読み込んでstr型に変換
@@ -67,20 +62,20 @@ class club_confirm(commands.Cog):
                 )
                 return
             else:
-                user_info = g.member_data[g.member_data["user_id"] == user_id]
+                user_info = self.bot.member_data[self.bot.member_data["user_id"] == user_id]
                 user_club = user_info["club_name"].to_string(header=False, index=False)
-                confirm_list = g.club_data[g.club_data["club_name"] == user_club]
+                confirm_list = self.bot.club_data[self.bot.club_data["club_name"] == user_club]
                 confirm_message = get_confirm_message(confirm_list)
                 await ctx.interaction.response.send_message(
                     confirm_message, ephemeral=True
                 )
                 return
         else:
-            confirm_list = g.club_data[g.club_data["user_id"] == user_id]
+            confirm_list = self.bot.club_data[self.bot.club_data["user_id"] == user_id]
             confirm_message = get_confirm_message(confirm_list)
             await ctx.interaction.response.send_message(confirm_message, ephemeral=True)
             return
 
 
 def setup(bot):
-    bot.add_cog(club_confirm(bot))
+    bot.add_cog(ClubConfirm(bot))
