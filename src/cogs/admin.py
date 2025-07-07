@@ -3,7 +3,7 @@ from discord import Option
 from discord.ext import commands
 from discord.commands import slash_command
 from discord.commands import SlashCommandGroup
-from settings.bot_settings import ADMIN_IDS
+from settings.bot_settings import IDS
 from settings.group import match_groups, match_group_mapping
 from settings.messages import build_message
 from modules import module as m
@@ -35,7 +35,7 @@ class Admin(commands.Cog):
 
 		# 運営陣取得
 		admins = []
-		for admin_id in ADMIN_IDS:
+		for admin_id in IDS.ADMIN:
 			user = ctx.guild.get_member(int(admin_id))
 			admins.append(user)
 		self.bot.admins_mention = " ".join([admin.mention for admin in admins])

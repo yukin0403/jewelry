@@ -8,8 +8,9 @@ import modules.module as m
 
 # モーダルウィンドウ
 class MyModal(discord.ui.Modal):
-    def __init__(self, user_name: str, user_id: str, *args, **kwargs) -> None:
+    def __init__(self, bot, user_name: str, user_id: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.bot = bot
         self.user_name = user_name
         self.user_id = user_id
 
@@ -72,7 +73,7 @@ class ClubRegister(commands.Cog):
     async def register(self, ctx):
         user_name = str(ctx.author.display_name)
         user_id = str(ctx.author.id)
-        modal = MyModal(user_name, user_id, title="サークル登録")
+        modal = MyModal(self.bot, user_name, user_id, title="サークル登録")
         await ctx.send_modal(modal=modal)
 
 

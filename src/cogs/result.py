@@ -115,7 +115,6 @@ class Result(commands.Cog):
 
     @result.error
     async def on_result_error(self, ctx: commands.Context, error):
-
         if isinstance(error, commands.CommandOnCooldown):
             retry_after_int = round(int(error.retry_after), 2)
             return await ctx.interaction.response.send_message(
